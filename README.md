@@ -21,7 +21,7 @@ Parsing the file, and loading it into an array:
 csvMatrix = modText.csvParse(csvFilepath)
 ```
 
-As an optional step, assuming ***csvMatrix*** has more than two columns of data - (x,y), we can individually specify what our chosen x and y arrays will be. These individual arrays are dimensioned as Nx1, (rxc). So, for instance, if you had ***csvMatrix*** having three columns of data - (x, y1, y2), and we only wanted to perform a fit to (x,y2) then we would pull out individual vectors as such:
+As an optional step, assuming ***csvMatrix*** has more than two columns of data - (x,y), we can individually specify what our chosen x and y arrays will be. These individual arrays are dimensioned as Nx1, (rxc). So, for instance, if you had ***csvMatrix*** having three columns of data - (x, y1, y2), and we only wanted to filter (x,y2) then we would pull out individual vectors as such:
 
 ```VBA
 'Separate x and y arrays from larger csvMatrix, if needed
