@@ -41,6 +41,27 @@ It's important to note that our Savitzky-Golay function assumes the input array 
 data_SG = modOptimization.optSavGol(data_2D, 11, 3)
 ```
 
+The function above, ***optSavGol*** has three inputs - the 2D data, the size of the window (the number of points we'll fit at a time), and the order of the polynomial, respectively. For this example, we've chosen a window size of eleven points and a third order polynomial. Now, it should be noted, that to uniquely determine an nth order polynomial one will minimally need (n+1) points. Let's explain a bit more.
+
+A straight line, or a first order polynomial is of the form:
+
+y(x) = a\*x + b
+
+We have two unknowns, a and b. To solve a linear system of equations with two unknowns we'll need, minimally, two equations. If less, the system is underdetermined, and if greater the system is overdetermined. Let's look at a second order polynomial which is of the form:
+
+y(x) = a\*x^2 + b\*x + c
+
+This time we have three unknowns, a, b and c. Just as before, with three unknowns we'll need three equations to solve the system uniquely - otherwise we have infinitely many solutions. Therefore, an nth order polynomial needs (n+1) points. There are some checks and balances within ***optSavGol*** on the window size and polynomial order, but just remember that keeping a healthy seperation between the two values will lead to better numerical stability.
+
+Now, once the function has completed, we now seek to export the filtered data, ***data_SG***, and perhaps other fields. We'll define a boolean variable, ***csvStatus***, to display true/false if the exporting was successful. We can see this in practice below:
+
+```VBA
+'Write the various results to written filepaths
+csvStatus = modText.csvWrite(csvMatrix, "raw.csv")
+csvStatus = modText.csvWrite(data_2D, "xy.csv")
+csvStatus = modText.csvWrite(data_SG, "filtered.csv")
+```
+
 ## Extra Features
 
 ### Downsampling
