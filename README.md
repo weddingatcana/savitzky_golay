@@ -47,7 +47,7 @@ A straight line, or a first order polynomial is of the form:
 
 y(x) = a\*x + b
 
-We have two unknowns, a and b. To solve a linear system of equations with two unknowns we'll need, minimally, two equations. If less, the system is underdetermined, and if greater the system is overdetermined. Let's look at a second order polynomial which is of the form:
+We have two unknowns, a and b. To solve a linear system of equations with two unknowns we'll need, minimally, two equations (aka, two points). If less, the system is underdetermined, and if greater the system is overdetermined. Let's look at a second order polynomial which is of the form:
 
 y(x) = a\*x^2 + b\*x + c
 
