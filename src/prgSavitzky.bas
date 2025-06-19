@@ -49,8 +49,7 @@ Sub PolyFit()
         data_fD = modOptimization.optfD(dataX_SG, dataY_SG)
         
         'Find peaks of data_2D and data_SG
-        peaks = modOptimization.optSavGolPeaks(data_2D, data_SG, data_fD)
-        
+        peaks = modOptimization.optSavGolPeaks(data_2D, data_SG, data_fD)        
         
         'Write the various results to written filepaths
         csvStatus = modText.csvWrite(data_2D, "xy.csv")
