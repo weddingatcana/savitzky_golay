@@ -41,7 +41,7 @@ It's important to note that our Savitzky-Golay function assumes the input array 
 data_SG = modOptimization.optSavGol(data_2D, 11, 3)
 ```
 
-The function above, ***optSavGol*** has three inputs - the 2D data, the size of the window (the number of points we'll fit at a time), and the order of the polynomial, respectively. For this example, we've chosen a window size of eleven points and a third order polynomial. Now, it should be noted, that to uniquely determine an nth order polynomial one will minimally need (n+1) points. Let's explain a bit more.
+The function above, ***optSavGol*** has three inputs - the 2D data, the size of the window (the number of points we'll fit at a time), and the order of the polynomial, respectively. For this example, we've chosen a window size of eleven points and a third order polynomial. When selecting the window size we must always choose an odd number. The rationale is that if we were to have an even window size, the middle point selected would yield an x data point that wouldnt correspond with any x data point within the raw ***data_2D*** data set. We'd be selecting a point in-between unique x data points. Now, it should be noted, that to uniquely determine an nth order polynomial one will minimally need (n+1) points. Let's explain a bit more.
 
 A straight line, or a first order polynomial is of the form:
 
@@ -91,14 +91,14 @@ The aptly named, ***optSavGolPeaks***, function will do just that. It takes thre
   2) The filtered data set, ***data_SG***.
   3) The derivative data set, ***data_fD***.
 
-Since we're dealing with discrete data, we don't have the luxury of selecting peaks by simply finding when the first derivative is zero.  We'll need to compute the first derivative by way of a first order central finite difference then check when there is a sign change. If you imagine the slope of a single hill, the slope changes from positive to zero then negative. With our array of differences, ***data_fD***, we seek when a linear sequence of elements within the array are of the pattern: (+,+,-,-). If that occurs we know that our peak would be represented by the second element (second +).
+Since we're dealing with discrete data, we don't have the luxury of selecting peaks by simply finding when the first derivative is zero.  We'll need to compute the first derivative by way of a first order central finite difference then check when there is a sign change. If you imagine the slope of a single hill, from left to right, the slope changes from positive to zero then negative. With our array of differences, ***data_fD***, we seek to find when a linear sequence of elements within the array are of the pattern: (+,+,-,-). If that occurs we know that our peak would be represented by the second element (second +).
 
 The normal route of using this function is to calculate differences from the smoothed data set, ***data_SG***. From there, peaks will be found using the above methodology. Using these smoothed peaks we will then loop through the raw data set and evaluate a small window range of values near where the smoothed peaks were located, to try and find the analgous raw peaks.
 
 We'd program this as such, starting from ***data_SG***:
 
 ```VBA
-'Generate smoothed data by Savitsky-Golay filter
+'Generate smoothed data from filter
 data_SG = modOptimization.optSavGol(data_2D, 11, 3)
 
 'Separate x,y data for use with optfD
@@ -118,9 +118,9 @@ csvStatus = modText.csvWrite(peaks.peaks_2D, "xy_peaks.csv")
 csvStatus = modText.csvWrite(peaks.peaks_SG, "smoothed_peaks.csv")
 ````
 
-You'll notice the variable **peaks** returns two arrays, this is because it is a user defined type, **tPeaks**. Which returns both the smoothed peaks and the raw peaks. 
+You'll notice the variable **peaks** returns two arrays, this is because it is of a user defined type, **tPeaks**. Which returns both the smoothed peaks and the raw peaks. 
 
-It is important to note that you could also simply use the ***optSavGolPeaks*** function to just return peaks from data that won't be smoothed. Merely generate a difference array of the data that hasn't been smoothed, and have both inputs 1) & 2) of the function be equal. An example of this is below:
+It is important to note that you could also simply use the ***optSavGolPeaks*** function to just return peaks from data that won't be smoothed. Merely generate a difference array of the data that hasn't been smoothed, and have both inputs, 1) & 2), of the function be equal. An example of this is below:
 
 ```VBA
 'Separate x and y arrays from larger csvMatrix, if needed
@@ -141,7 +141,36 @@ csvStatus = modText.csvWrite(data_2D, "xy.csv")
 csvStatus = modText.csvWrite(peaks.peaks_2D, "xy_peaks_no_smooth.csv")
 ````
 
-### Window Sizing & Polynomial Order
+### Padding
 
+There exists a fourth, optional, argument for the ***optSavGol*** function that allows for padding. To explain, when fitting a polynomial to a window of raw data points we will select the middle point of the window as our filtered data. However, as a consequence, points from start and end of any raw data set, will be excluded from the filtered data set. Here's a toy example, given starting x,y data:
+
+**dataY** = (2,4,8,9,8,4,2)
+**dataX** = (1,2,3,4,5,6,7)
+
+So our starting data array's contain seven elements total. Let's say our window is three, so starting off the algorithm we'll evaluate the starting data within the window:
+
+**dataY_window** = (2,4,8)
+**dataX_window** = (1,2,3)
+
+Let's say we make a fit through **dataY_window**, our fitted data would be, generally:
+
+**dataY_window_fit** = (f1,f2,f3)
+
+Then, selecting our middle point (x,y) we get (2,f2). Therefore, we have completely dropped the first data point of our starting data set. Similarly if we went through the motions we'd find that we'll also drop the final point of our starting data. So, to find how many points will be dropped from any starting data set, as a function of window size, we find:
+
+**dropped_points**(window) = window - 1
+
+To continue futher, the number of points dropped at either end of the starting data set is (**dropped_points**/2). So, with that explained, if we want to have the starting data and filtered data sets to be of the same length, we'll just include the points left out. The points included will be points corresponding to a polynomial fit, not the raw points. To show this implemented:
+
+```VBA
+data_SG = modOptimization.optSavGol(data_2D, 11, 3, padding)
+```
+
+The fourth argument is by default padded, however using the sunumeration you can also select ***no_padding***:
+
+```VBA
+data_SG = modOptimization.optSavGol(data_2D, 11, 3, no_padding)
+```
 
 ## Notes
