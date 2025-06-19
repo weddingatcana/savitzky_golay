@@ -1,6 +1,6 @@
 # Savitzky Golay Filter
 
-When working on various projects, I tend to have the need to smooth data or evaluate trends. Since having completed work on polynomial fitting, employing the Savitzky-Golay filter followed naturally. There's a great wikipedia article detailing the specifics of the filter, [found here](https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter), and for those curious enough, and having journal access, you can check out the seminal paper [also found here](https://pubs.acs.org/doi/abs/10.1021/ac60214a047). 
+When working on various projects, I tend to have the need to smooth data or evaluate trends. Since having completed work on polynomial fitting, employing the Savitzky-Golay filter followed naturally. There's a great wikipedia article detailing the specifics of the filter, [found here](https://en.wikipedia.org/wiki/Savitzky%E2%80%93Golay_filter), and for those curious enough, *and having journal access*, you can check out the seminal paper [also found here](https://pubs.acs.org/doi/abs/10.1021/ac60214a047). 
 
 However, simply put, the filter will take a noisy signal and have you define a moving window from which the points inside will be fitted with a polynomial of order specified by you. Once fit, you take the center point from the fitted polynomial as the first point to your filtered data. Indexing the window by one will move you down the noisy signal and repeat the process until there is no more data to filter.
 
@@ -66,7 +66,80 @@ csvStatus = modText.csvWrite(data_SG, "filtered.csv")
 
 ### Downsampling
 
+As previously discussed in the **polynomial_fitting** repository, we allow for data to be downsampled in order to reduce the time required to calculate our filtered data. The function, ***mathDownSampling***, takes only one dimension of data at a time - x or y etc. More specifics can be found in the aforementioned repository, so for now we'll just focus on the implementation:
+
+```VBA
+'Separate x and y arrays from larger csvMatrix, just as before
+dataX = modMatrix.matVec(csvMatrix, 1)
+dataY = modMatrix.matVec(csvMatrix, 3)
+
+'Perform downsampling, let's say every other point
+dataX_dS = modMath.mathDownSampling(dataX, 2)
+dataY_dS = modMath.mathDownSampling(dataY, 2)
+
+'Recombining again
+data_2D = modMatrix.matJoin(dataX_dS, dataY_dS)
+````
+
 ### Peak Finding
+
+Generally, when trying to smooth noisy data, you're looking for trends and points of inflection. It proves rather useful in analyses to find local/global peaks of said trends. Trying to find the decay rate for a damped sinusoid? Find the peaks and fit an exponential. Looking to find the cycle time for a noisy, complicated waveform? *P e a k s.*
+
+The aptly named, ***optSavGolPeaks***, function will do just that. It takes three input arrays, respectively:
+  
+  1) The raw data set, ***data_2D***.
+  2) The filtered data set, ***data_SG***.
+  3) The derivative data set, ***data_fD***.
+
+Since we're dealing with discrete data, we don't have the luxury of selecting peaks by simply finding when the first derivative is zero.  We'll need to compute the first derivative by way of a first order central finite difference then check when there is a sign change. If you imagine the slope of a single hill, the slope changes from positive to zero then negative. With our array of differences, ***data_fD***, we seek when a linear sequence of elements within the array are of the pattern: (+,+,-,-). If that occurs we know that our peak would be represented by the second element (second +).
+
+The normal route of using this function is to calculate differences from the smoothed data set, ***data_SG***. From there, peaks will be found using the above methodology. Using these smoothed peaks we will then loop through the raw data set and evaluate a small window range of values near where the smoothed peaks were located, to try and find the analgous raw peaks.
+
+We'd program this as such, starting from ***data_SG***:
+
+```VBA
+'Generate smoothed data by Savitsky-Golay filter
+data_SG = modOptimization.optSavGol(data_2D, 11, 3)
+
+'Separate x,y data for use with optfD
+dataX_SG = modMatrix.matVec(data_SG, 1)
+dataY_SG = modMatrix.matVec(data_SG, 2)
+
+'Calculate finite difference array
+data_fD = modOptimization.optfD(dataX_SG, dataY_SG)
+
+'Find peaks of data_2D and data_SG
+peaks = modOptimization.optSavGolPeaks(data_2D, data_SG, data_fD)
+
+'Write the various results to written filepaths
+csvStatus = modText.csvWrite(data_2D, "xy.csv")
+csvStatus = modText.csvWrite(data_SG, "smoothed.csv")
+csvStatus = modText.csvWrite(peaks.peaks_2D, "xy_peaks.csv")
+csvStatus = modText.csvWrite(peaks.peaks_SG, "smoothed_peaks.csv")
+````
+
+You'll notice the variable **peaks** returns two arrays, this is because it is a user defined type, **tPeaks**. Which returns both the smoothed peaks and the raw peaks. 
+
+It is important to note that you could also simply use the ***optSavGolPeaks*** function to just return peaks from data that hasn't been smoothed. Merely generate a difference array of the data that hasn't been smoothed, and have both 1) & 2) inputs of the function be equal. An example of this is below:
+
+```VBA
+'Separate x and y arrays from larger csvMatrix, if needed
+dataX = modMatrix.matVec(csvMatrix, 1)
+dataY = modMatrix.matVec(csvMatrix, 3)
+
+'Combine x,y data into one array
+data_2D = modMatrix.matJoin(dataX, dataY))
+
+'Calculate finite difference array of non-smoothed data
+data_fD = modOptimization.optfD(dataX, dataY)
+
+'Find peaks of data_2D (raw)
+peaks = modOptimization.optSavGolPeaks(data_2D, data_2D, data_fD)
+
+'Write the various results to written filepaths
+csvStatus = modText.csvWrite(data_2D, "xy.csv")
+csvStatus = modText.csvWrite(peaks.peaks_2D, "xy_peaks_no_smooth.csv")
+````
 
 ### Window Sizing & Polynomial Order
 
