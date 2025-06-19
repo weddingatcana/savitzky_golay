@@ -146,11 +146,13 @@ csvStatus = modText.csvWrite(peaks.peaks_2D, "xy_peaks_no_smooth.csv")
 There exists a fourth, optional, argument for the ***optSavGol*** function that allows for padding. To explain, when fitting a polynomial to a window of raw data points we will select the middle point of the window as our filtered data. However, as a consequence, points from start and end of any raw data set, will be excluded from the filtered data set. Here's a toy example, given starting x,y data:
 
 **dataY** = (2,4,8,9,8,4,2)
+
 **dataX** = (1,2,3,4,5,6,7)
 
 So our starting data array's contain seven elements total. Let's say our window is three, so starting off the algorithm we'll evaluate the starting data within the window:
 
 **dataY_window** = (2,4,8)
+
 **dataX_window** = (1,2,3)
 
 Let's say we make a fit through **dataY_window**, our fitted data would be, generally:
@@ -167,10 +169,14 @@ To continue futher, the number of points dropped at either end of the starting d
 data_SG = modOptimization.optSavGol(data_2D, 11, 3, padding)
 ```
 
-The fourth argument is by default padded, however using the sunumeration you can also select ***no_padding***:
+The fourth argument is by default padded, however using the enumeration provided you can also select ***no_padding***:
 
 ```VBA
 data_SG = modOptimization.optSavGol(data_2D, 11, 3, no_padding)
 ```
 
 ## Notes
+
+The filter can, under certain conditions, generate nonsensical data. Essentially, by having a polynomial order that is too close to a given window size, you are forcing the filter to create a highly complex curve that is overly sensitive to noise, leading to the observed nonsensical data. To mitigate this, ensure your window size is significantly larger than your polynomial order.
+
+Anecdotally, I have noticed that larger data sets are more sensitive to this overfitting, ill-conditioned phenomena. The results that I've witnessed always start out with the filtered data providing a good result, and then gradually starts going off the rails gradually outputting data well beyond the dependent axis bounds from raw data. It's as if the noise is being fitted and gradually compounding over the length of the data set.
