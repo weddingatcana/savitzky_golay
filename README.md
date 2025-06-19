@@ -120,7 +120,7 @@ csvStatus = modText.csvWrite(peaks.peaks_SG, "smoothed_peaks.csv")
 
 You'll notice the variable **peaks** returns two arrays, this is because it is a user defined type, **tPeaks**. Which returns both the smoothed peaks and the raw peaks. 
 
-It is important to note that you could also simply use the ***optSavGolPeaks*** function to just return peaks from data that hasn't been smoothed. Merely generate a difference array of the data that hasn't been smoothed, and have both 1) & 2) inputs of the function be equal. An example of this is below:
+It is important to note that you could also simply use the ***optSavGolPeaks*** function to just return peaks from data that won't be smoothed. Merely generate a difference array of the data that hasn't been smoothed, and have both inputs 1) & 2) of the function be equal. An example of this is below:
 
 ```VBA
 'Separate x and y arrays from larger csvMatrix, if needed
